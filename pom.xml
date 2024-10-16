@@ -9,4 +9,12 @@
         <maven.compiler.release>17</maven.compiler.release>
         <exec.mainClass>aluraretomonedas.Proyecto</exec.mainClass>
     </properties>
+    <dependencies>
+        <!-- Dependencia de Gson -->
+        <dependency>
+            <groupId>com.google.code.gson</groupId>
+            <artifactId>gson</artifactId>
+            <version>2.11.0</version>
+        </dependency>
+    </dependencies>
 </project>
