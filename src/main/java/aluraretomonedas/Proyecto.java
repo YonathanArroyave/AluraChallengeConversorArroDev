@@ -5,6 +5,8 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.text.NumberFormat;
+import java.util.Locale;
 import java.util.Scanner;
 
 import com.google.gson.FieldNamingPolicy;
@@ -73,7 +75,6 @@ public class Proyecto {
         }
     }
 
-// Método para realizar la conversión con divisas predefinidas
     private static void realizarConversion(String divisa1, String divisa2) throws IOException, InterruptedException {
         Scanner cantidad = new Scanner(System.in);
         Gson gson = new GsonBuilder()
@@ -84,7 +85,12 @@ public class Proyecto {
         System.out.println("Escriba cantidad en " + divisa1 + " :");
         var cant = cantidad.nextLine();
 
-        String direccion = "https://v6.exchangerate-api.com/v6/52340389e50330e818f09e82/pair/" + divisa1 + "/" + divisa2 + "/" + cant.replaceAll("[.,]", "");
+        // Crear formateadores de moneda según la divisa
+        NumberFormat formatoDivisa1 = obtenerFormato(divisa1);
+        NumberFormat formatoDivisa2 = obtenerFormato(divisa2);
+
+        String direccion = "https://v6.exchangerate-api.com/v6/52340389e50330e818f09e82/pair/"
+                + divisa1 + "/" + divisa2 + "/" + cant.replaceAll("[.,]", "");
 
         HttpClient client = HttpClient.newHttpClient();
         HttpRequest request = HttpRequest.newBuilder()
@@ -98,13 +104,14 @@ public class Proyecto {
 
         JsonObject jsonObject = gson.fromJson(json, JsonObject.class);
         double resultadoConversion = jsonObject.get("conversion_result").getAsDouble();
+        double cantidadOriginal = Double.parseDouble(cant.replaceAll("[.,]", ""));
 
-        System.out.println(divisa1 + " " + cant + " = " + divisa2 + " " + resultadoConversion);
+        System.out.println(divisa1 + " " + formatoDivisa1.format(cantidadOriginal)
+                + " = " + divisa2 + " " + formatoDivisa2.format(resultadoConversion));
     }
 
-// Método para realizar la conversión con divisas personalizadas (tu código original)
     private static void realizarConversionPersonalizada() throws IOException, InterruptedException {
-        System.out.println("POR FAVOR NO INTRUDUZCA NI PUNTOS NI COMAS EN LAS CANTIDADES.");
+        System.out.println("POR FAVOR NO INTRODUZCA NI PUNTOS NI COMAS EN LAS CANTIDADES.");
         Scanner entrada1 = new Scanner(System.in);
         Scanner entrada2 = new Scanner(System.in);
         Scanner cantidad = new Scanner(System.in);
@@ -115,15 +122,19 @@ public class Proyecto {
                 .create();
 
         System.out.println("Escriba la Divisa a la cual desea convertir : ");
-        var divisa1 = entrada1.nextLine();
+        var divisa1 = entrada1.nextLine().toUpperCase();
 
         System.out.println("Escriba cantidad en " + divisa1 + " :");
         var cant = cantidad.nextLine();
 
         System.out.println("Escriba la Divisa de entrada 2 : ");
-        var divisa2 = entrada2.nextLine();
+        var divisa2 = entrada2.nextLine().toUpperCase();
 
-        String direccion = "https://v6.exchangerate-api.com/v6/52340389e50330e818f09e82/pair/" + divisa1 + "/" + divisa2 + "/" + cant.replaceAll("[.,]", "");
+        NumberFormat formatoDivisa1 = obtenerFormato(divisa1);
+        NumberFormat formatoDivisa2 = obtenerFormato(divisa2);
+
+        String direccion = "https://v6.exchangerate-api.com/v6/52340389e50330e818f09e82/pair/"
+                + divisa1 + "/" + divisa2 + "/" + cant.replaceAll("[.,]", "");
 
         HttpClient client = HttpClient.newHttpClient();
         HttpRequest request = HttpRequest.newBuilder()
@@ -137,7 +148,29 @@ public class Proyecto {
 
         JsonObject jsonObject = gson.fromJson(json, JsonObject.class);
         double resultadoConversion = jsonObject.get("conversion_result").getAsDouble();
+        double cantidadOriginal = Double.parseDouble(cant.replaceAll("[.,]", ""));
 
-        System.out.println(divisa1 + " " + cant + " = " + divisa2 + " " + resultadoConversion);
+        System.out.println(divisa1 + " " + formatoDivisa1.format(cantidadOriginal)
+                + " = " + divisa2 + " " + formatoDivisa2.format(resultadoConversion));
+    }
+
+    private static NumberFormat obtenerFormato(String divisa) {
+        NumberFormat formato;
+        switch (divisa) {
+            case "COP":
+                formato = NumberFormat.getCurrencyInstance(new Locale("es", "CO"));
+                break;
+            case "USD":
+                formato = NumberFormat.getCurrencyInstance(new Locale("en", "US"));
+                break;
+            case "EUR":
+                formato = NumberFormat.getCurrencyInstance(new Locale("es", "ES"));
+                break;
+            default:
+                formato = NumberFormat.getInstance();
+                formato.setMaximumFractionDigits(2);
+                formato.setMinimumFractionDigits(2);
+        }
+        return formato;
     }
 }
